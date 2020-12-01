@@ -26,7 +26,7 @@ app.get('/store', function (req, res) {
        });
      };
 
-     Store.count({ status: true }, (err, count) => {
+     Store.collection.countDocuments({ status: true }, (err, count) => {
 
       res.json({
         ok: true,
