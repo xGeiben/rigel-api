@@ -2,13 +2,15 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
 const Store = require('../models/store');
+
+const { verifyToken } = require('../middlewares/auth');
 const app = express();
 
 
 
 
 
-app.get('/store', function (req, res) {
+app.get('/store', verifyToken, (req, res) => {
   let from = req.query.from || 0;
   let limit = req.query.limit || 5;
 
@@ -43,10 +45,9 @@ app.get('/store', function (req, res) {
 
 });
 
-app.post('/store', function (req, res) {
+app.post('/store', verifyToken, (req, res) => {
 
   let body = req.body;
-  console.log(body);
   let store = new Store({
     name: body.name,
     email: body.email,
@@ -62,8 +63,6 @@ app.post('/store', function (req, res) {
         err
       });
     }
-
-    // storeDB.password = null;
     
     
     res.json({
@@ -77,7 +76,7 @@ app.post('/store', function (req, res) {
 
 
 
-app.put('/store/:id', function (req, res) {
+app.put('/store/:id', verifyToken, (req, res) => {
   let id = req.params.id;
   let body = _.pick(req.body, ['name', 'email', 'img', 'role', 'status']);
 
@@ -104,7 +103,7 @@ app.put('/store/:id', function (req, res) {
 
 
 
-app.delete('/store/:id', function (req, res) {
+app.delete('/store/:id', verifyToken, (req, res) => {
   
   let id = req.params.id;
 

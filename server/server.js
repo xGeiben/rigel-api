@@ -9,7 +9,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
-app.use(require('./routes/store'));
+//Configuracion global de rutas
+app.use(require('./routes/index'));
  
 const uri = 'mongodb+srv://geiben-usr:Joinmeindead1!@cluster0.er82s.mongodb.net/rigel-api?retryWrites=true&w=majority'
 mongoose.connect(uri, {

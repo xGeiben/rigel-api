@@ -49,6 +49,6 @@ storeSchema.methods.toJSON = function() {
   return storeObject;
 }
 
-storeSchema.plugin( uniqueValidator, { message: '{PATH} debe de serr unico'} );
+storeSchema.plugin( uniqueValidator, { message: '{PATH} debe de ser unico'} );
 
 module.exports = mongoose.model('Store', storeSchema);
