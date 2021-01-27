@@ -9,6 +9,11 @@ let validRoles = {
 let Schema = mongoose.Schema;
 
 let storeSchema = new Schema({
+  id: {
+    type: String,
+    unique: true,
+    required: true
+  },
   name: {
     type: String,
     required: [true, 'Name is a required field'],
@@ -44,7 +49,10 @@ let storeSchema = new Schema({
 storeSchema.methods.toJSON = function() {
   let store = this;
   let storeObject = store.toObject();
+  // storeObject.id = storeObject._id;
   delete storeObject.password;
+  // delete storeObject._id;
+  // delete storeObject.__v;
 
   return storeObject;
 }

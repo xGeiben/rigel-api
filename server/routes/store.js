@@ -45,7 +45,7 @@ app.get('/store', verifyToken, (req, res) => {
 
 });
 
-app.post('/store', verifyToken, (req, res) => {
+app.post('/store', (req, res) => {
 
   let body = req.body;
   let store = new Store({
@@ -54,7 +54,7 @@ app.post('/store', verifyToken, (req, res) => {
     password: bcrypt.hashSync(body.password, 10),
     role: body.role,
   });
-
+  store.id = store._id;
   store.save( (err, storeDB) => {
 
     if( err ) {
@@ -63,7 +63,6 @@ app.post('/store', verifyToken, (req, res) => {
         err
       });
     }
-    
     
     res.json({
       ok: true,
@@ -89,12 +88,12 @@ app.put('/store/:id', verifyToken, (req, res) => {
         ok: false,
         err
       });
-    }
+    };
 
     res.json({
       ok: true,
       store: storeDB
-    })
+    });
 
   });
 
