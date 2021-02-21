@@ -9,8 +9,10 @@ app.post('/login', (req, res) => {
 
   let body = req.body;
 
-  Store.findOne({ email: body.email }, { _id: 0, __v: 0 }, (err, storeDB) => {
-
+  // Store.findOne({ email: body.email }, { _id: 0, __v: 0 }, (err, storeDB) => {
+  Store.findOne({ email: body.email }, { _id: 0, __v: 0 })
+  .populate({ path: 'plan', select: '-_id -__v'})
+  .exec( (err, storeDB) => {
     if( err ) {
       return res.status(500).json({
         ok: false,

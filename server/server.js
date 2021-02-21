@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const apiErrorrHandler = require('./error/api-error-handler');
 var cors = require('cors')
 
 // parse application/x-www-form-urlencoded
@@ -14,6 +15,7 @@ app.use(cors());
 
 //Configuracion global de rutas
 app.use(require('./routes/index'));
+app.use(apiErrorrHandler);
  
 // const uri = 'mongodb+srv://geiben-usr:Joinmeindead1!@cluster0.er82s.mongodb.net/rigel-api?retryWrites=true&w=majority'
 const uri = "mongodb+srv://geiben-user:TuXBaowYxiMmbHCU@cluster0.lzo7s.mongodb.net/rigel-api?retryWrites=true&w=majority";

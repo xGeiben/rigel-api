@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 let Schema = mongoose.Schema;
+// let Strain = require('../');
 
 let strainTypes = {
   values: ['SATIVA', 'INDICA', 'MIXED'],
@@ -26,6 +27,10 @@ let strainSchema = new Schema({
   storeId: { type: Schema.Types.ObjectId, ref: 'Store' },
   views: { type: Number, default: 0 }
 });
+
+// strainSchema.methods.Publish = function() {
+//   Strain.find
+// }
 
 strainSchema.methods.toJSON = function() {
   let strain = this;
