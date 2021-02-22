@@ -39,7 +39,7 @@ router.route('/strain')
   })
   .post(verifyToken, (req, res, next) => {
     // Check if the store can add more strains
-    Store.findById( req.body.storeId, { id: 1, addedStrains: 1, planId: 1 })
+    Store.findById( req.body.storeId, { id: 1, addedStrains: 1, plan: 1 })
     .populate({ path: 'plan', select: 'addedStrainsLimit'})
     .exec( (err, storeDB) => {
       if( err ) {
@@ -134,78 +134,97 @@ router.route('/strain')
   });
 
 router.route('/strain/publish')
-  .put([verifyToken], (req, res) => {
-    Strain.findByIdAndUpdate(req.body.id, { live: true }, { multi: false }, (err, strainDB) => {
+  .put([verifyToken], (req, res, next) => {
+    // Find the corresponging store
+    Store.findById( req.body.storeId, { id: 1, publishedStrains: 1, plan: 1 })
+    .populate({ path: 'plan', select: 'publishedStrainsLimit'})
+    .exec( (err, storeDB) => {
       if( err ) {
-        return res.status(500).json({
-          ok: false,
-          err
-        });
-      };
-  
-      if( !strainDB ) {
-        return res.status(400).json({
-          ok: false,
-          err
-        });
+        next(ApiError.badRequest(err));
       };
 
-      // Get strains by  storeId
-      Strain.find({ storeId: strainDB.storeId })
-      .exec( (err, strains) => {
+      // Check if the current number of published strains is higher than the allowed one
+      if( storeDB.publishedStrains >=  storeDB.plan.publishedStrainsLimit ) {
+        next(ApiError.badRequest('La tienda a excedido el numero de platas que puede publicar.'));
+        return;
+      }
+
+      // Passed all validations 
+      Strain.findByIdAndUpdate(req.body.id, { live: true }, { multi: false }, (err, strainDB) => {
         if( err ) {
-          return res.status(400).json({
-            ok: false,
-            err
-          });
+          next(ApiError.internalError(err));
         };
-
-        // Return all the strains corresponding the store
-        Strain.collection.countDocuments({}, (err, count) => {
-          res.json({
-            ok: true,
-            strains,
-            count
+    
+        if( !strainDB ) {
+          next(ApiError.badRequest(err));
+        };
+        
+        // Update the number of published strains of the store
+        Store.findByIdAndUpdate(storeDB.id, { publishedStrains: storeDB.publishedStrains + 1 }, (err, updatedStore) => { 
+          // Get strains by  storeId
+          Strain.find({ storeId: strainDB.storeId })
+          .exec( (err, strains) => {
+            if( err ) {
+              next(ApiError.badRequest(err));
+            };
+          
+            // Return all the strains corresponding the store
+            Strain.collection.countDocuments({}, (err, count) => {
+              if( err ) {
+                next(ApiError.badRequest(err));
+              };
+              
+              res.json({
+                ok: true,
+                strains,
+                count
+              });
+            });
           });
         });
       });
-
     });
   });
 
 router.route('/strain/unpublish')
-  .put(verifyToken, (req, res) => {
-    Strain.findByIdAndUpdate(req.body.id, { live: false }, { multi: false }, (err, strainDB) => {
+  .put(verifyToken, (req, res, next) => {
+    // Find the corresponging store
+    Store.findById( req.body.storeId, { id: 1, publishedStrains: 1 })
+    .exec( (err, storeDB) => {
       if( err ) {
-        return res.status(500).json({
-          ok: false,
-          err
-        });
+        next(ApiError.badRequest(err));
       };
-  
-      if( !strainDB ) {
-        return res.status(400).json({
-          ok: false,
-          err
-        });
-      };
-      
-      // Get strains by  storeId
-      Strain.find({ storeId: strainDB.storeId })
-      .exec( (err, strains) => {
-        if( err ) {
-          return res.status(400).json({
-            ok: false,
-            err
-          });
-        };
 
-        // Return all the strains corresponding the store
-        Strain.collection.countDocuments({}, (err, count) => {
-          res.json({
-            ok: true,
-            strains,
-            count
+      Strain.findByIdAndUpdate(req.body.id, { live: false }, { multi: false }, (err, strainDB) => {
+        if( err ) {
+          next(ApiError.internalError(err));
+        };
+    
+        if( !strainDB ) {
+          next(ApiError.badRequest(err));
+        };
+        
+        // Update the number of published strains of the store
+        Store.findByIdAndUpdate(storeDB.id, { publishedStrains: storeDB.publishedStrains - 1 }, (err, updatedStore) => { 
+          if( err ) {
+            next(ApiError.internalError(err));
+          }
+
+          // Get strains by  storeId
+          Strain.find({ storeId: strainDB.storeId })
+          .exec( (err, strains) => {
+            if( err ) {
+              next(ApiError.internalError(err));
+            };
+          
+            // Return all the strains corresponding the store
+            Strain.collection.countDocuments({}, (err, count) => {
+              res.json({
+                ok: true,
+                strains,
+                count
+              });
+            });
           });
         });
       });

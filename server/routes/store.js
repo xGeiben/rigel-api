@@ -3,8 +3,10 @@ const bcrypt = require('bcrypt');
 const _ = require('underscore');
 const Store = require('../models/store');
 const { verifyToken } = require('../middlewares/auth');
+const ApiError = require('../error/ApiError');
 const app = express();
 const router = express.Router();
+const localizedStrings = require('../consts/localized-strings.const');
 
 
 router.route('/store')
@@ -72,11 +74,27 @@ router.route('/store')
   })
 
 router.route('/store/:id')
+  .get(verifyToken, ( req, res, next ) =>{
+    Store.findById(req.params.id, { _id: 0, __v: 0 }, (err, storeDB) => {
+      if( err ) {
+        next(ApiError.badRequest(err));
+        return;
+      }
+
+      if( !storeDB ) {
+        next(ApiError.notFoundError(localizedStrings.storeNotFound));
+        return;
+      }
+
+      res.json({
+        ok: true,
+        store: storeDB,
+      });
+    });
+  })
   .put(verifyToken, (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['name', 'email', 'img', 'role', 'status']);
-  
-  
   
     Store.findByIdAndUpdate(id, body, { new: true, runValidators: true }, (err, storeDB) => {
   
@@ -124,10 +142,5 @@ router.route('/store/:id')
       });
     });  
   })
-
-
-
-
-
 
 module.exports = router;

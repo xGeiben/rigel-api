@@ -11,6 +11,10 @@ class ApiError {
   static internalError(msg) {
     return new ApiError(500, msg);
   }
+
+  static notFoundError(msg) {
+    return new ApiError(404, msg);
+  }
 }
 
 module.exports = ApiError;
